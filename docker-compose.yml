@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  
+  jupyter:
+    image: jupyter/minimal-notebook
+    volumes:
+      - ./work:/home/jovyan/work
+    container_name: "pynote_jupyter"
+    command: "start-notebook.sh --NotebookApp.token="
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pynote_jupyter.rule=Host(`pynote.localhost`)"
+      - "traefik.http.routers.pynote_jupyter.entrypoints=web"
